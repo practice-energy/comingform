@@ -48,14 +48,14 @@ export default function Component() {
           const maxDistance = Math.sqrt(Math.pow(canvas.width / 2, 2) + Math.pow(canvas.height / 2, 2))
           const normalizedDistance = distanceFromCenter / maxDistance
 
-          // Увеличенная интенсивность волн на мобильных
-          const waveIntensity = isMobile ? 12 : 10
+          // Увеличенная интенсивность волн на мобильных с zoom out эффектом
+          const waveIntensity = isMobile ? 24 : 20
           const waveOffset = Math.sin(normalizedDistance * waveIntensity - time) * 0.5 + 0.5
-          const size = gridSize * waveOffset * (isMobile ? 0.9 : 0.8)
+          const size = gridSize * waveOffset * (isMobile ? 1.8 : 1.6)
 
           ctx.beginPath()
           ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2)
-          ctx.fillStyle = `rgba(255, 255, 255, ${waveOffset * (isMobile ? 0.25 : 0.2)})`
+          ctx.fillStyle = `rgba(255, 255, 255, ${waveOffset * (isMobile ? 0.5 : 0.4)})`
           ctx.fill()
         }
       }
