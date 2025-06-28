@@ -48,14 +48,14 @@ export default function Component() {
           const maxDistance = Math.sqrt(Math.pow(canvas.width / 2, 2) + Math.pow(canvas.height / 2, 2))
           const normalizedDistance = distanceFromCenter / maxDistance
 
-          // Увеличенная интенсивность волн на мобильных с zoom out эффектом
-          const waveIntensity = isMobile ? 24 : 20
+          // Уменьшенная интенсивность волн
+          const waveIntensity = isMobile ? 3 : 2.5
           const waveOffset = Math.sin(normalizedDistance * waveIntensity - time) * 0.5 + 0.5
-          const size = gridSize * waveOffset * (isMobile ? 1.8 : 1.6)
+          const size = gridSize * waveOffset * (isMobile ? 0.3 : 0.25)
 
           ctx.beginPath()
           ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2)
-          ctx.fillStyle = `rgba(255, 255, 255, ${waveOffset * (isMobile ? 0.5 : 0.4)})`
+          ctx.fillStyle = `rgba(255, 255, 255, ${waveOffset * (isMobile ? 0.08 : 0.06)})`
           ctx.fill()
         }
       }
@@ -67,7 +67,7 @@ export default function Component() {
 
       drawHalftoneWave()
 
-      time += 0.03
+      time += 0.008 // Было 0.03, теперь гораздо медленнее
       animationFrameId = requestAnimationFrame(animate)
     }
 
