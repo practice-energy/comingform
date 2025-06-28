@@ -176,7 +176,7 @@ export default function Component() {
       </div>
 
       {/* Text - Same width as form, no padding (отступ от блока до текста = 0) */}
-      <div className="absolute bottom-[142px] sm:bottom-[178px] left-1/2 transform -translate-x-1/2 pointer-events-none">
+      <div className="absolute bottom-[147px] sm:bottom-[185px] left-1/2 transform -translate-x-1/2 pointer-events-none">
         <div
           className="text-center pointer-events-none w-[90vw] sm:w-[720px] max-w-[720px]"
           style={{ opacity: textOpacity }}
@@ -192,7 +192,7 @@ export default function Component() {
 
       {/* Form - Exact same width as text block */}
       <div
-        className="absolute bottom-4 sm:bottom-8 left-1/2 transform -translate-x-1/2 pointer-events-auto"
+        className="absolute bottom-5 sm:bottom-7 left-1/2 transform -translate-x-1/2 pointer-events-auto"
         style={{ opacity: formOpacity }}
       >
         <div className="w-[90vw] sm:w-[720px] max-w-[720px] h-[102px] sm:h-[130px] bg-white/10 border border-white/20 rounded backdrop-blur-sm p-2.5 sm:p-3.5 relative">
