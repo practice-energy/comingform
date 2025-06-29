@@ -26,48 +26,65 @@ export default function Component() {
     let animationFrameId: number
     let time = 0
     let iterationCount = 0
-    let violetCircles = new Set<string>()
-    let nextVioletCircles = new Set<string>()
-    let transitionProgress = 0
+    let highlightedCircles = new Set<string>()
+    let newHighlightedCircles = new Set<string>()
+    let transitionProgress = 1 // 1 = transition complete, 0 = transition starting
+    let lastTransitionTime = 0
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth
       canvas.height = window.innerHeight
+      // Regenerate highlighted circles when canvas resizes
+      generateHighlightedCircles()
     }
 
-    const generateVioletCircles = (rows: number, cols: number) => {
+    const generateHighlightedCircles = () => {
+      const isMobile = window.innerWidth < 768
+      const gridSize = isMobile ? 15 : 20
+      const rows = Math.ceil(canvas.height / gridSize)
+      const cols = Math.ceil(canvas.width / gridSize)
       const totalCircles = rows * cols
-      const violetCount = Math.floor(totalCircles * 0.04) // 4% кругов
-      const circles = new Set<string>()
+      const highlightCount = Math.floor(totalCircles * 0.04) // 4% of circles
 
-      while (circles.size < violetCount) {
-        const x = Math.floor(Math.random() * cols)
-        const y = Math.floor(Math.random() * rows)
-        circles.add(`${x}-${y}`)
+      const newSet = new Set<string>()
+      while (newSet.size < highlightCount) {
+        const randomRow = Math.floor(Math.random() * rows)
+        const randomCol = Math.floor(Math.random() * cols)
+        newSet.add(`${randomRow}-${randomCol}`)
       }
 
-      return circles
+      newHighlightedCircles = newSet
+    }
+
+    const interpolateColor = (progress: number) => {
+      // Violet-600 color: #7c3aed (124, 58, 237)
+      const violetR = 124
+      const violetG = 58
+      const violetB = 237
+
+      // White color: (255, 255, 255)
+      const whiteR = 255
+      const whiteG = 255
+      const whiteB = 255
+
+      const r = Math.round(whiteR + (violetR - whiteR) * progress)
+      const g = Math.round(whiteG + (violetG - whiteG) * progress)
+      const b = Math.round(whiteB + (violetB - whiteB) * progress)
+
+      return `rgb(${r}, ${g}, ${b})`
     }
 
     const drawHalftoneWave = () => {
-      // Адаптивный размер сетки - меньше на мобильных для большей области анимации
       const isMobile = window.innerWidth < 768
       const gridSize = isMobile ? 15 : 20
       const rows = Math.ceil(canvas.height / gridSize)
       const cols = Math.ceil(canvas.width / gridSize)
 
-      // Обновляем фиолетовые круги каждую четвертую итерацию
-      if (iterationCount % 4 === 0) {
-        nextVioletCircles = generateVioletCircles(rows, cols)
-        transitionProgress = 0
-      }
-
-      // Плавный переход между наборами фиолетовых кругов
-      if (iterationCount % 4 === 1) {
-        transitionProgress = Math.min(transitionProgress + 0.1, 1)
-        if (transitionProgress >= 1) {
-          violetCircles = new Set(nextVioletCircles)
-        }
+      // Update transition progress
+      const currentTime = Date.now()
+      if (transitionProgress < 1) {
+        const elapsed = currentTime - lastTransitionTime
+        transitionProgress = Math.min(1, elapsed / 600) // 0.6 seconds = 600ms
       }
 
       for (let y = 0; y < rows; y++) {
@@ -80,49 +97,59 @@ export default function Component() {
           const maxDistance = Math.sqrt(Math.pow(canvas.width / 2, 2) + Math.pow(canvas.height / 2, 2))
           const normalizedDistance = distanceFromCenter / maxDistance
 
-          // Уменьшенная интенсивность волн на 50%
           const waveIntensity = isMobile ? 6 : 5
           const waveOffset = Math.sin(normalizedDistance * waveIntensity - time) * 0.5 + 0.5
           const size = gridSize * waveOffset * (isMobile ? 0.45 : 0.4)
 
-          const circleKey = `${x}-${y}`
-          const isCurrentViolet = violetCircles.has(circleKey)
-          const isNextViolet = nextVioletCircles.has(circleKey)
+          const circleKey = `${y}-${x}`
+          const wasHighlighted = highlightedCircles.has(circleKey)
+          const willBeHighlighted = newHighlightedCircles.has(circleKey)
 
-          // Определяем, должен ли круг быть фиолетовым с учетом перехода
-          let isViolet = false
-          if (iterationCount % 4 === 1 && transitionProgress < 1) {
-            // Во время перехода
-            if (isCurrentViolet && !isNextViolet) {
-              // Исчезающий фиолетовый круг
-              isViolet = Math.random() > transitionProgress
-            } else if (!isCurrentViolet && isNextViolet) {
-              // Появляющийся фиолетовый круг
-              isViolet = Math.random() < transitionProgress
-            } else if (isCurrentViolet && isNextViolet) {
-              // Остается фиолетовым
-              isViolet = true
+          let fillStyle: string
+
+          if (transitionProgress < 1) {
+            // During transition
+            if (wasHighlighted && !willBeHighlighted) {
+              // Fading from violet to white
+              const color = interpolateColor(1 - transitionProgress)
+              const alpha = waveOffset * (isMobile ? 0.125 : 0.1)
+              fillStyle = color.replace("rgb", "rgba").replace(")", `, ${alpha})`)
+            } else if (!wasHighlighted && willBeHighlighted) {
+              // Fading from white to violet
+              const color = interpolateColor(transitionProgress)
+              const alpha = waveOffset * (isMobile ? 0.125 : 0.1)
+              fillStyle = color.replace("rgb", "rgba").replace(")", `, ${alpha})`)
+            } else if (wasHighlighted && willBeHighlighted) {
+              // Staying violet
+              const color = interpolateColor(1)
+              const alpha = waveOffset * (isMobile ? 0.125 : 0.1)
+              fillStyle = color.replace("rgb", "rgba").replace(")", `, ${alpha})`)
+            } else {
+              // Staying white
+              fillStyle = `rgba(255, 255, 255, ${waveOffset * (isMobile ? 0.125 : 0.1)})`
             }
           } else {
-            isViolet = violetCircles.has(circleKey)
+            // Transition complete
+            if (willBeHighlighted) {
+              const color = interpolateColor(1)
+              const alpha = waveOffset * (isMobile ? 0.125 : 0.1)
+              fillStyle = color.replace("rgb", "rgba").replace(")", `, ${alpha})`)
+            } else {
+              fillStyle = `rgba(255, 255, 255, ${waveOffset * (isMobile ? 0.125 : 0.1)})`
+            }
           }
 
           ctx.beginPath()
           ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2)
-
-          if (isViolet) {
-            // Фиолетовый цвет кнопки (violet-600: #7c3aed)
-            ctx.fillStyle = `rgba(124, 58, 237, ${waveOffset * (isMobile ? 0.3 : 0.25)})`
-          } else {
-            // Обычный белый цвет
-            ctx.fillStyle = `rgba(255, 255, 255, ${waveOffset * (isMobile ? 0.125 : 0.1)})`
-          }
-
+          ctx.fillStyle = fillStyle
           ctx.fill()
         }
       }
 
-      iterationCount++
+      // Complete transition when progress reaches 1
+      if (transitionProgress >= 1 && highlightedCircles !== newHighlightedCircles) {
+        highlightedCircles = new Set(newHighlightedCircles)
+      }
     }
 
     const animate = () => {
@@ -132,10 +159,20 @@ export default function Component() {
       drawHalftoneWave()
 
       time += 0.03
+      iterationCount++
+
+      // Every 4th iteration, start new transition
+      if (iterationCount % 4 === 0 && transitionProgress >= 1) {
+        generateHighlightedCircles()
+        transitionProgress = 0
+        lastTransitionTime = Date.now()
+      }
+
       animationFrameId = requestAnimationFrame(animate)
     }
 
     resizeCanvas()
+    generateHighlightedCircles()
     window.addEventListener("resize", resizeCanvas)
 
     animate()
