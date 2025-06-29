@@ -250,7 +250,9 @@ export default function Component() {
             style={{
               color: "rgba(255, 255, 255, 0.95)",
               fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif",
-              fontSize: "clamp(25.2px, 5vw, 37.8px)", // Увеличено на 5%: мобильный 25.2px, планшет 31.5px, десктоп 37.8px
+              fontSize: "clamp(1.575rem, 4vw, 2.52rem)", // Увеличено на 5% от text-2xl/3xl/4xl
+              textShadow:
+                "1px 1px 0 rgba(0, 0, 0, 0.8), -1px -1px 0 rgba(0, 0, 0, 0.8), 1px -1px 0 rgba(0, 0, 0, 0.8), -1px 1px 0 rgba(0, 0, 0, 0.8)", // Обводка
             }}
           >
             {displayText}
