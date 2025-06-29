@@ -25,26 +25,12 @@ export default function Component() {
 
     let animationFrameId: number
     let time = 0
-    let frameCount = 0
-    let violetCircles = new Set<string>()
+    let iterationCount = 0
+    const coloredCircles = new Set<string>()
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth
       canvas.height = window.innerHeight
-    }
-
-    const generateVioletCircles = (rows: number, cols: number) => {
-      const totalCircles = rows * cols
-      const violetCount = Math.floor(totalCircles * 0.2) // 20% кругов
-      const newVioletCircles = new Set<string>()
-
-      while (newVioletCircles.size < violetCount) {
-        const randomRow = Math.floor(Math.random() * rows)
-        const randomCol = Math.floor(Math.random() * cols)
-        newVioletCircles.add(`${randomRow}-${randomCol}`)
-      }
-
-      return newVioletCircles
     }
 
     const drawHalftoneWave = () => {
@@ -54,9 +40,18 @@ export default function Component() {
       const rows = Math.ceil(canvas.height / gridSize)
       const cols = Math.ceil(canvas.width / gridSize)
 
-      // Обновляем фиолетовые круги каждую вторую итерацию
-      if (frameCount % 2 === 0) {
-        violetCircles = generateVioletCircles(rows, cols)
+      // Обновляем цветные круги каждую четвертую итерацию
+      if (iterationCount % 4 === 0) {
+        coloredCircles.clear()
+        const totalCircles = rows * cols
+        const coloredCount = Math.floor(totalCircles * 0.1) // 10% кругов
+
+        // Выбираем случайные позиции для цветных кругов
+        while (coloredCircles.size < coloredCount) {
+          const randomX = Math.floor(Math.random() * cols)
+          const randomY = Math.floor(Math.random() * rows)
+          coloredCircles.add(`${randomX}-${randomY}`)
+        }
       }
 
       for (let y = 0; y < rows; y++) {
@@ -77,21 +72,22 @@ export default function Component() {
           ctx.beginPath()
           ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2)
 
-          // Проверяем, должен ли этот круг быть фиолетовым
-          const circleKey = `${y}-${x}`
-          const isViolet = violetCircles.has(circleKey)
+          // Проверяем, является ли этот круг цветным
+          const isColored = coloredCircles.has(`${x}-${y}`)
 
-          if (isViolet) {
-            // Фиолетовый цвет кнопки (violet-600: #7c3aed)
+          if (isColored) {
+            // Цвет кнопки со стрелкой (violet-600)
             ctx.fillStyle = `rgba(124, 58, 237, ${waveOffset * (isMobile ? 0.125 : 0.1)})`
           } else {
-            // Белый цвет
+            // Обычный белый цвет
             ctx.fillStyle = `rgba(255, 255, 255, ${waveOffset * (isMobile ? 0.125 : 0.1)})`
           }
 
           ctx.fill()
         }
       }
+
+      iterationCount++
     }
 
     const animate = () => {
@@ -101,7 +97,6 @@ export default function Component() {
       drawHalftoneWave()
 
       time += 0.03
-      frameCount++
       animationFrameId = requestAnimationFrame(animate)
     }
 
