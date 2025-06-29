@@ -246,10 +246,11 @@ export default function Component() {
           style={{ opacity: textOpacity }}
         >
           <p
-            className="text-[25.2px] sm:text-[31.5px] lg:text-[42px] font-semibold tracking-normal"
+            className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-normal"
             style={{
               color: "rgba(255, 255, 255, 0.95)",
               fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif",
+              fontSize: "clamp(24.72px, 4vw, 37.08px)",
             }}
           >
             {displayText}
