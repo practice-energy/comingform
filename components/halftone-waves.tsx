@@ -53,9 +53,21 @@ export default function Component() {
           const waveOffset = Math.sin(normalizedDistance * waveIntensity - time) * 0.5 + 0.5
           const size = gridSize * waveOffset * (isMobile ? 0.45 : 0.4)
 
+          // 20% случайных кругов будут фиолетового цвета (цвет кнопки)
+          const isViolet = Math.random() < 0.2
+          const baseOpacity = waveOffset * (isMobile ? 0.125 : 0.1)
+
           ctx.beginPath()
           ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2)
-          ctx.fillStyle = `rgba(255, 255, 255, ${waveOffset * (isMobile ? 0.125 : 0.1)})`
+
+          if (isViolet) {
+            // Цвет кнопки violet-600 (#7c3aed)
+            ctx.fillStyle = `rgba(124, 58, 237, ${baseOpacity})`
+          } else {
+            // Белый цвет как раньше
+            ctx.fillStyle = `rgba(255, 255, 255, ${baseOpacity})`
+          }
+
           ctx.fill()
         }
       }
