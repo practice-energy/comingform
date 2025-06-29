@@ -33,6 +33,19 @@ export default function Component() {
       canvas.height = window.innerHeight
     }
 
+    const updateColoredCircles = (rows: number, cols: number) => {
+      coloredCircles.clear()
+      const totalCircles = rows * cols
+      const coloredCount = Math.floor(totalCircles * 0.04) // 4% кругов
+
+      for (let i = 0; i < coloredCount; i++) {
+        const randomRow = Math.floor(Math.random() * rows)
+        const randomCol = Math.floor(Math.random() * cols)
+        const key = `${randomRow}-${randomCol}`
+        coloredCircles.add(key)
+      }
+    }
+
     const drawHalftoneWave = () => {
       // Адаптивный размер сетки - меньше на мобильных для большей области анимации
       const isMobile = window.innerWidth < 768
@@ -42,16 +55,7 @@ export default function Component() {
 
       // Обновляем цветные круги каждую четвертую итерацию
       if (iterationCount % 4 === 0) {
-        coloredCircles.clear()
-        const totalCircles = rows * cols
-        const coloredCount = Math.floor(totalCircles * 0.1) // 10% кругов
-
-        // Выбираем случайные позиции для цветных кругов
-        while (coloredCircles.size < coloredCount) {
-          const randomX = Math.floor(Math.random() * cols)
-          const randomY = Math.floor(Math.random() * rows)
-          coloredCircles.add(`${randomX}-${randomY}`)
-        }
+        updateColoredCircles(rows, cols)
       }
 
       for (let y = 0; y < rows; y++) {
@@ -73,11 +77,12 @@ export default function Component() {
           ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2)
 
           // Проверяем, является ли этот круг цветным
-          const isColored = coloredCircles.has(`${x}-${y}`)
+          const circleKey = `${y}-${x}`
+          const isColored = coloredCircles.has(circleKey)
 
           if (isColored) {
-            // Цвет кнопки со стрелкой (violet-600)
-            ctx.fillStyle = `rgba(124, 58, 237, ${waveOffset * (isMobile ? 0.125 : 0.1)})`
+            // Цвет кнопки violet-600 (#7c3aed = rgb(124, 58, 237))
+            ctx.fillStyle = `rgba(124, 58, 237, ${waveOffset * (isMobile ? 0.3 : 0.25)})`
           } else {
             // Обычный белый цвет
             ctx.fillStyle = `rgba(255, 255, 255, ${waveOffset * (isMobile ? 0.125 : 0.1)})`
@@ -86,8 +91,6 @@ export default function Component() {
           ctx.fill()
         }
       }
-
-      iterationCount++
     }
 
     const animate = () => {
@@ -97,6 +100,7 @@ export default function Component() {
       drawHalftoneWave()
 
       time += 0.03
+      iterationCount++
       animationFrameId = requestAnimationFrame(animate)
     }
 
