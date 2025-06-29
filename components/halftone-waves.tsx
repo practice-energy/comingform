@@ -240,7 +240,7 @@ export default function Component() {
       </div>
 
       {/* Text - Same width as form, no padding (отступ от блока до текста = 0) */}
-      <div className="absolute bottom-[147px] sm:bottom-[185px] left-1/2 transform -translate-x-1/2 pointer-events-none">
+      <div className="absolute top-8 sm:top-12 left-1/2 transform -translate-x-1/2 pointer-events-none">
         <div
           className="text-center pointer-events-none w-[90vw] sm:w-[720px] max-w-[720px]"
           style={{ opacity: textOpacity }}
