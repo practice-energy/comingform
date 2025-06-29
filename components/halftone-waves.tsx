@@ -25,10 +25,26 @@ export default function Component() {
 
     let animationFrameId: number
     let time = 0
+    let frameCount = 0
+    let violetCircles = new Set<string>()
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth
       canvas.height = window.innerHeight
+    }
+
+    const generateVioletCircles = (rows: number, cols: number) => {
+      const totalCircles = rows * cols
+      const violetCount = Math.floor(totalCircles * 0.2) // 20% кругов
+      const newVioletCircles = new Set<string>()
+
+      while (newVioletCircles.size < violetCount) {
+        const randomRow = Math.floor(Math.random() * rows)
+        const randomCol = Math.floor(Math.random() * cols)
+        newVioletCircles.add(`${randomRow}-${randomCol}`)
+      }
+
+      return newVioletCircles
     }
 
     const drawHalftoneWave = () => {
@@ -37,6 +53,11 @@ export default function Component() {
       const gridSize = isMobile ? 15 : 20
       const rows = Math.ceil(canvas.height / gridSize)
       const cols = Math.ceil(canvas.width / gridSize)
+
+      // Обновляем фиолетовые круги каждую вторую итерацию
+      if (frameCount % 2 === 0) {
+        violetCircles = generateVioletCircles(rows, cols)
+      }
 
       for (let y = 0; y < rows; y++) {
         for (let x = 0; x < cols; x++) {
@@ -53,19 +74,19 @@ export default function Component() {
           const waveOffset = Math.sin(normalizedDistance * waveIntensity - time) * 0.5 + 0.5
           const size = gridSize * waveOffset * (isMobile ? 0.45 : 0.4)
 
-          // 20% случайных кругов будут фиолетового цвета (цвет кнопки)
-          const isViolet = Math.random() < 0.2
-          const baseOpacity = waveOffset * (isMobile ? 0.125 : 0.1)
-
           ctx.beginPath()
           ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2)
 
+          // Проверяем, должен ли этот круг быть фиолетовым
+          const circleKey = `${y}-${x}`
+          const isViolet = violetCircles.has(circleKey)
+
           if (isViolet) {
-            // Цвет кнопки violet-600 (#7c3aed)
-            ctx.fillStyle = `rgba(124, 58, 237, ${baseOpacity})`
+            // Фиолетовый цвет кнопки (violet-600: #7c3aed)
+            ctx.fillStyle = `rgba(124, 58, 237, ${waveOffset * (isMobile ? 0.125 : 0.1)})`
           } else {
-            // Белый цвет как раньше
-            ctx.fillStyle = `rgba(255, 255, 255, ${baseOpacity})`
+            // Белый цвет
+            ctx.fillStyle = `rgba(255, 255, 255, ${waveOffset * (isMobile ? 0.125 : 0.1)})`
           }
 
           ctx.fill()
@@ -80,6 +101,7 @@ export default function Component() {
       drawHalftoneWave()
 
       time += 0.03
+      frameCount++
       animationFrameId = requestAnimationFrame(animate)
     }
 
