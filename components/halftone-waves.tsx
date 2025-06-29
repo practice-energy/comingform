@@ -26,24 +26,27 @@ export default function Component() {
     let animationFrameId: number
     let time = 0
     let iterationCount = 0
-    const coloredCircles = new Set<string>()
+    let violetCircles = new Set<string>()
+    let nextVioletCircles = new Set<string>()
+    let transitionProgress = 0
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth
       canvas.height = window.innerHeight
     }
 
-    const updateColoredCircles = (rows: number, cols: number) => {
-      coloredCircles.clear()
+    const generateVioletCircles = (rows: number, cols: number) => {
       const totalCircles = rows * cols
-      const coloredCount = Math.floor(totalCircles * 0.04) // 4% кругов
+      const violetCount = Math.floor(totalCircles * 0.04) // 4% кругов
+      const circles = new Set<string>()
 
-      for (let i = 0; i < coloredCount; i++) {
-        const randomRow = Math.floor(Math.random() * rows)
-        const randomCol = Math.floor(Math.random() * cols)
-        const key = `${randomRow}-${randomCol}`
-        coloredCircles.add(key)
+      while (circles.size < violetCount) {
+        const x = Math.floor(Math.random() * cols)
+        const y = Math.floor(Math.random() * rows)
+        circles.add(`${x}-${y}`)
       }
+
+      return circles
     }
 
     const drawHalftoneWave = () => {
@@ -53,9 +56,18 @@ export default function Component() {
       const rows = Math.ceil(canvas.height / gridSize)
       const cols = Math.ceil(canvas.width / gridSize)
 
-      // Обновляем цветные круги каждую четвертую итерацию
+      // Обновляем фиолетовые круги каждую четвертую итерацию
       if (iterationCount % 4 === 0) {
-        updateColoredCircles(rows, cols)
+        nextVioletCircles = generateVioletCircles(rows, cols)
+        transitionProgress = 0
+      }
+
+      // Плавный переход между наборами фиолетовых кругов
+      if (iterationCount % 4 === 1) {
+        transitionProgress = Math.min(transitionProgress + 0.1, 1)
+        if (transitionProgress >= 1) {
+          violetCircles = new Set(nextVioletCircles)
+        }
       }
 
       for (let y = 0; y < rows; y++) {
@@ -73,15 +85,33 @@ export default function Component() {
           const waveOffset = Math.sin(normalizedDistance * waveIntensity - time) * 0.5 + 0.5
           const size = gridSize * waveOffset * (isMobile ? 0.45 : 0.4)
 
+          const circleKey = `${x}-${y}`
+          const isCurrentViolet = violetCircles.has(circleKey)
+          const isNextViolet = nextVioletCircles.has(circleKey)
+
+          // Определяем, должен ли круг быть фиолетовым с учетом перехода
+          let isViolet = false
+          if (iterationCount % 4 === 1 && transitionProgress < 1) {
+            // Во время перехода
+            if (isCurrentViolet && !isNextViolet) {
+              // Исчезающий фиолетовый круг
+              isViolet = Math.random() > transitionProgress
+            } else if (!isCurrentViolet && isNextViolet) {
+              // Появляющийся фиолетовый круг
+              isViolet = Math.random() < transitionProgress
+            } else if (isCurrentViolet && isNextViolet) {
+              // Остается фиолетовым
+              isViolet = true
+            }
+          } else {
+            isViolet = violetCircles.has(circleKey)
+          }
+
           ctx.beginPath()
           ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2)
 
-          // Проверяем, является ли этот круг цветным
-          const circleKey = `${y}-${x}`
-          const isColored = coloredCircles.has(circleKey)
-
-          if (isColored) {
-            // Цвет кнопки violet-600 (#7c3aed = rgb(124, 58, 237))
+          if (isViolet) {
+            // Фиолетовый цвет кнопки (violet-600: #7c3aed)
             ctx.fillStyle = `rgba(124, 58, 237, ${waveOffset * (isMobile ? 0.3 : 0.25)})`
           } else {
             // Обычный белый цвет
@@ -91,6 +121,8 @@ export default function Component() {
           ctx.fill()
         }
       }
+
+      iterationCount++
     }
 
     const animate = () => {
@@ -100,7 +132,6 @@ export default function Component() {
       drawHalftoneWave()
 
       time += 0.03
-      iterationCount++
       animationFrameId = requestAnimationFrame(animate)
     }
 
